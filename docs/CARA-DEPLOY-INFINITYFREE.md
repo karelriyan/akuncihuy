@@ -109,7 +109,10 @@ Ganti `<USERNAME>` dengan nama akun GitHub-mu dan `<REPO>` dengan nama repo. Con
 - Saat push pertama, akan terbuka jendela browser GitHub → klik **Sign in with your browser** →
   login → klik **Authorize** → kembali ke Git Bash dan prosesnya lanjut sendiri.
 - Setelah ini, setiap kali kamu `git push`, aplikasi otomatis ter-upload ke hosting.
-- Alamat situsmu: `http://<subdomain-pilihanmu>` (contoh `http://majujaya.free.nf`).
+- Alamat situsmu: `https://<subdomain-pilihanmu>` (contoh `https://majujaya.free.nf`).
+
+> **Catatan:** berkas `.htaccess` di repo ikut ter-deploy otomatis dan memaksa HTTPS
+> serta menolak akses HTTP ke folder `config/` dan berkas `*.sql`, `*.md`.
 
 ---
 
@@ -125,6 +128,7 @@ Ganti `<USERNAME>` dengan nama akun GitHub-mu dan `<REPO>` dengan nama repo. Con
 | Klik **Save Changes** di halaman **Settings** gagal dengan pesan **"Unknown column 'jenis_usaha' in 'field list'"** | Database di hosting di-import **sebelum** kolom `jenis_usaha` ada (versi lama) | Jalankan berkas migrasi `deploy/infinityfree/migrasi-01-tambah-jenis_usaha.sql` lewat phpMyAdmin (pilih database → tab **SQL** → tempel → **Go**). Migrasi ini **tidak** menghapus data |
 | Halaman web tampil **"This site can't provide a secure connection"** atau peringatan "not secure" | SSL belum aktif | Di vPanel, buka menu **SSL Certificates** → **Add SSL Certificate** → pilih penyedia sertifikat gratis → ikuti instruksinya (biasanya perlu menambah record CNAME di menu DNS). Tunggu sampai statusnya aktif, lalu buka lagi dengan `https://` |
 | Situs tiba-tiba tidak bisa dibuka sama sekali | Kuota harian habis (hits/hari) atau akun disuspend karena lama tidak ada pengunjung | Tunggu ~24 jam; kalau karena inactivity, buka Client Area dan aktifkan kembali akunnya |
+| Situs menampilkan **500 Internal Server Error** setelah deploy | Direktif `.htaccess` tidak didukung hosting | Hapus baris terakhir yang ditambahkan, commit, push lagi |
 
 Hal yang wajar di hosting gratis ini: tidak ada SSH, file wajib ada di folder `htdocs`,
 dan ukuran file HTML/PHP/JS dibatasi 1 MB. Aplikasi ini jauh di bawah batas itu.

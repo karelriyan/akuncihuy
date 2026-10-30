@@ -179,6 +179,29 @@ VALUES
 ('KRY-003','Dimas Saputra','Operator Cetak dan Jilid','081322220003','Jl. Cempaka No. 9',1),
 ('KRY-004','Nadia Putri','Administrasi','081322220004','Jl. Flamboyan No. 11',1);
 
+-- 6. PENGGUNA (autentikasi & RBAC)
+CREATE TABLE pengguna (
+  id_pengguna BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  nama_lengkap VARCHAR(150) NOT NULL,
+  peran ENUM('super_admin','karyawan') NOT NULL DEFAULT 'karyawan',
+  id_karyawan BIGINT UNSIGNED NULL,
+  status_aktif BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_pengguna_karyawan FOREIGN KEY (id_karyawan) REFERENCES karyawan(id_karyawan)
+    ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- Password awal untuk semua akun: 12345678 (harus diganti setelah login pertama).
+INSERT INTO pengguna (username,password_hash,nama_lengkap,peran,id_karyawan) VALUES
+('admin','$2y$12$wVBdN9BZ8kJGgJbemBeaV.bqCPUvU2UNpD128UtFlgCmoTqBRYg8m','Super Admin','super_admin',NULL),
+('andi','$2y$12$wVBdN9BZ8kJGgJbemBeaV.bqCPUvU2UNpD128UtFlgCmoTqBRYg8m','Andi Pratama','karyawan',(SELECT id_karyawan FROM karyawan WHERE kode_karyawan='KRY-001')),
+('siti','$2y$12$wVBdN9BZ8kJGgJbemBeaV.bqCPUvU2UNpD128UtFlgCmoTqBRYg8m','Siti Rahmawati','karyawan',(SELECT id_karyawan FROM karyawan WHERE kode_karyawan='KRY-002')),
+('dimas','$2y$12$wVBdN9BZ8kJGgJbemBeaV.bqCPUvU2UNpD128UtFlgCmoTqBRYg8m','Dimas Saputra','karyawan',(SELECT id_karyawan FROM karyawan WHERE kode_karyawan='KRY-003')),
+('nadia','$2y$12$wVBdN9BZ8kJGgJbemBeaV.bqCPUvU2UNpD128UtFlgCmoTqBRYg8m','Nadia Putri','karyawan',(SELECT id_karyawan FROM karyawan WHERE kode_karyawan='KRY-004'));
+
 -- 7. JURNAL UMUM
 CREATE TABLE jurnal_umum (
   id_jurnal BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

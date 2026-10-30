@@ -72,3 +72,4 @@ jobs:
             .github/**
             .gitignore
             config/credentials.example.php
+            README.md

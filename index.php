@@ -1,4 +1,15 @@
 <?php
+require __DIR__ . '/config/auth.php';
+$user = null;
+$u = auth_user();
+if (is_array($u)) {
+    $user = [
+        'username' => $u['username'],
+        'nama' => $u['nama_lengkap'],
+        'peran' => $u['peran'],
+    ];
+}
+$loggedIn = is_array($user) && !empty($user['username']);
 ?><!doctype html>
 <html lang="en">
 <head>
@@ -7,13 +18,39 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
-<script>window.APP_NAME="MAJU JAYA";</script>
+<script>window.APP_NAME="MAJU JAYA";<?php if($loggedIn): ?>window.CURRENT_USER=<?php echo json_encode($user,JSON_UNESCAPED_UNICODE);?>;<?php endif; ?></script>
 </head>
 <body>
+<?php if(!$loggedIn): ?>
+<div class="login-screen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(135deg,#eef4ff,#f7f9fc)">
+  <div class="panel" style="width:100%;max-width:420px;padding:32px">
+    <div style="text-align:center;margin-bottom:24px"><div class="brand-mark" style="margin:0 auto 12px">MJ</div><h1 style="margin:0;font-size:24px">MAJU JAYA</h1><p class="muted" style="margin:6px 0 0">Accounting Information System</p></div>
+    <form id="loginForm">
+      <div class="field"><label>Username</label><input name="username" id="loginUsername" required autofocus></div>
+      <div class="field"><label>Password</label><input name="password" id="loginPassword" type="password" required></div>
+      <div id="loginError" class="muted" style="color:#c0392b;margin:8px 0;min-height:18px"></div>
+      <button class="btn btn-primary" type="submit" style="width:100%">Masuk</button>
+    </form>
+  </div>
+</div>
+<script>
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const err = document.getElementById('loginError');
+  err.textContent = '';
+  try {
+    const res = await fetch('api.php?action=login', {method:'POST', headers:{'Content-Type':'application/json','X-Requested-With':'XMLHttpRequest'}, body:JSON.stringify({username:document.getElementById('loginUsername').value, password:document.getElementById('loginPassword').value})});
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || 'Login gagal');
+    location.reload();
+  } catch (e2) { err.textContent = e2.message; }
+});
+</script>
+<?php else: ?>
 <div class="app-shell">
 <aside class="sidebar" id="sidebar">
  <div class="brand"><div class="brand-mark">MJ</div><div class="brand-copy"><strong>MAJU JAYA</strong><span>Accounting System</span></div><button class="sidebar-close" id="sidebarClose" aria-label="Tutup menu">×</button></div>
- <div class="profile-card"><div class="avatar">A</div><div class="profile-info"><strong>Administrator</strong><span>System Admin</span></div><button class="more-btn" aria-label="Account options">•••</button></div>
+ <div class="profile-card"><div class="avatar" id="sidebarAvatar">A</div><div class="profile-info"><strong id="sidebarName">Administrator</strong><span id="sidebarRole">System Admin</span></div><button class="more-btn" aria-label="Account options" id="logoutBtn">Keluar</button></div>
  <div class="nav-label">WORKSPACE</div>
  <nav class="navigation">
   <button class="nav-item" data-page="coa"><span class="nav-icon">▤</span><span>Chart of Accounts</span></button>
@@ -25,6 +62,7 @@
    <button class="sub-item" data-page="pemasok"><i></i>Supplier Data</button>
    <button class="sub-item" data-page="karyawan"><i></i>Employee Data</button>
   </div>
+  <button class="nav-item" data-page="journal"><span class="nav-icon">☰</span><span>Jurnal Umum</span></button>
   <button class="nav-item" data-page="reports"><span class="nav-icon">▥</span><span>Financial Reports</span></button>
   <button class="nav-item" data-page="settings"><span class="nav-icon">⚙</span><span>Settings</span></button>
  </nav>
@@ -32,7 +70,7 @@
 </aside>
 <div class="mobile-scrim" id="scrim"></div>
 <main class="main-area">
- <header class="topbar"><div class="top-left"><button class="menu-toggle" id="menuToggle" aria-label="Buka menu">☰</button><div><div class="breadcrumb">Workspace <span>/</span> <b id="breadcrumbText">Dashboard</b></div><h1 id="pageTitle">Dashboard</h1></div></div><div class="top-actions"><button class="icon-button" title="Notifications" aria-label="Notifikasi">♧<i></i></button><div class="top-profile"><div class="avatar small">A</div><div><b>Administrator</b><span>Admin account</span></div><span class="top-chevron">⌄</span></div></div></header>
+ <header class="topbar"><div class="top-left"><button class="menu-toggle" id="menuToggle" aria-label="Buka menu">☰</button><div><div class="breadcrumb">Workspace <span>/</span> <b id="breadcrumbText">Dashboard</b></div><h1 id="pageTitle">Dashboard</h1></div></div><div class="top-actions"><button class="icon-button" title="Notifications" aria-label="Notifikasi">♧<i></i></button><div class="top-profile"><div class="avatar small" id="topAvatar">A</div><div><b id="topName">Administrator</b><span id="topRole">Admin account</span></div><span class="top-chevron">⌄</span></div></div></header>
  <section class="page-content" id="pageContent"><div class="loading-state">Loading your accounting workspace…</div></section>
  <footer class="page-footer"><span>© 2026 Fotokopi & ATK Maju Jaya</span><span>Accounting Information System <b>•</b> SAK EMKM</span></footer>
 </main>
@@ -40,4 +78,5 @@
 <div class="modal-layer" id="modalLayer"><div class="modal" id="modal"><div class="modal-head"><div><span class="modal-kicker">MAJU JAYA WORKSPACE</span><h2 id="modalTitle">Add new data</h2></div><button class="modal-x" id="modalClose">×</button></div><div id="modalBody"></div></div></div>
 <div class="toast" id="toast"></div>
 <script src="assets/app.js"></script>
+<?php endif; ?>
 </body></html>

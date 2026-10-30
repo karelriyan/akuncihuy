@@ -5,3 +5,21 @@ RewriteEngine On
 RewriteCond %{HTTPS} !=on
 RewriteCond %{HTTP:X-Forwarded-Proto} !https
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+# Matikan directory listing.
+Options -Indexes
+
+# Tolak akses HTTP langsung ke berkas sensitif (mod_rewrite, bukan <FilesMatch>).
+RewriteRule ^config/ - [F,L]
+RewriteRule \.(sql|md|log|bak|ini)$ - [F,L]
+
+# Header keamanan (dibungkus IfModule agar tidak memicu 500 di server tanpa modul).
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# HSTS (Strict-Transport-Security) sengaja TIDAK ditambahkan:
+# sertifikat gratis InfinityFree (ZeroSSL) harus diperpanjang manual,
+# dan HSTS akan membuat situs tidak bisa dibuka bila sertifikat kedaluwarsa.

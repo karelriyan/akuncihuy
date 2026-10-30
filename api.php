@@ -2,6 +2,7 @@
 declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
 require __DIR__ . '/config/database.php';
+require __DIR__ . '/config/auth.php';
 
 function out($data, int $code=200): void {
     http_response_code($code); echo json_encode($data, JSON_UNESCAPED_UNICODE); exit;
@@ -13,6 +14,68 @@ function body(): array {
 function strv($v): string { return trim((string)($v ?? '')); }
 $action = $_GET['action'] ?? '';
 $input = body();
+
+// Auth actions (processed before login check)
+if ($action === 'login') {
+    $username = strv($input['username'] ?? '');
+    $password = (string)($input['password'] ?? '');
+    $stmt = $pdo->prepare("SELECT * FROM pengguna WHERE username = ? AND status_aktif = 1");
+    $stmt->execute([$username]);
+    $row = $stmt->fetch();
+    if (!$row || !password_verify($password, (string)$row['password_hash'])) {
+        out(['error' => 'Username atau password salah.'], 401);
+    }
+    session_regenerate_id(true);
+    $_SESSION['id_pengguna'] = $row['id_pengguna'];
+    $_SESSION['username'] = $row['username'];
+    $_SESSION['nama_lengkap'] = $row['nama_lengkap'];
+    $_SESSION['peran'] = $row['peran'];
+    $_SESSION['id_karyawan'] = $row['id_karyawan'];
+    out(['success' => true, 'user' => ['username' => $row['username'], 'nama' => $row['nama_lengkap'], 'peran' => $row['peran']]]);
+}
+if ($action === 'logout') {
+    $_SESSION = [];
+    if (session_status() === PHP_SESSION_ACTIVE) { session_destroy(); }
+    out(['success' => true]);
+}
+if ($action === 'me') {
+    $u = auth_user();
+    if ($u === null) out(['error' => 'Silakan login terlebih dahulu.'], 401);
+    out(['data' => ['username' => $u['username'], 'nama' => $u['nama_lengkap'], 'peran' => $u['peran'], 'id_karyawan' => $u['id_karyawan']]]);
+}
+if ($action === 'change_password') {
+    auth_require_login();
+    auth_require_csrf_header();
+    $u = auth_user();
+    $passwordLama = (string)($input['password_lama'] ?? '');
+    $passwordBaru = (string)($input['password_baru'] ?? '');
+    $stmt = $pdo->prepare("SELECT password_hash FROM pengguna WHERE id_pengguna = ?");
+    $stmt->execute([$u['id_pengguna']]);
+    $hash = $stmt->fetchColumn();
+    if (!$hash || !password_verify($passwordLama, (string)$hash)) {
+        out(['error' => 'Password lama tidak sesuai.'], 422);
+    }
+    if (strlen($passwordBaru) < 8) {
+        out(['error' => 'Password baru minimal 8 karakter.'], 422);
+    }
+    $newHash = password_hash($passwordBaru, PASSWORD_DEFAULT);
+    $upd = $pdo->prepare("UPDATE pengguna SET password_hash = ? WHERE id_pengguna = ?");
+    $upd->execute([$newHash, $u['id_pengguna']]);
+    out(['success' => true]);
+}
+
+// Protect all other actions
+if (!in_array($action, ['login', 'logout', 'me', 'change_password'], true)) {
+    auth_require_login();
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+        auth_require_csrf_header();
+    }
+    $authU = auth_user();
+    $allowedKaryawan = ['dashboard', 'list', 'coa', 'journals', 'reports', 'settings', 'save_journal'];
+    if (($authU['peran'] ?? '') !== 'super_admin' && !in_array($action, $allowedKaryawan, true)) {
+        auth_require_super_admin();
+    }
+}
 
 try {
  switch ($action) {
@@ -50,6 +113,14 @@ try {
     if(!isset($map[$type])) out(['error'=>'Invalid data type'],400);
     $m=$map[$type]; $vals=[];
     foreach($m['fields'] as $f){$vals[$f]=$input[$f]??null;}
+    // Coerce NULL/empty for NOT NULL columns so DB defaults are not defeated by explicit NULL.
+    $numericNotNull=['stok','harga_beli','harga_jual','saldo_referensi'];
+    foreach(array_keys($vals) as $f){
+      if($vals[$f]===null || $vals[$f]===''){
+        if($f==='status_aktif') $vals[$f]=1;
+        elseif(in_array($f,$numericNotNull,true)) $vals[$f]=0;
+      }
+    }
     $numericFields=['stok','harga_beli','harga_jual','saldo_referensi'];
     foreach($numericFields as $nf){
       if(array_key_exists($nf,$vals) && $vals[$nf]!==null && $vals[$nf]!==''){
