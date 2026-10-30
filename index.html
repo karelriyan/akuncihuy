@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="description" content="Akuncihuy — Sistem Informasi Akuntansi untuk UMKM sesuai standar SAK EMKM. Jurnal, bagan akun, dan laporan dalam satu aplikasi browser, tanpa instalasi."/>
+<title>Akuncihuy — Sistem Informasi Akuntansi untuk UMKM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ============ Tokens ============ */
+  :root {
+    --bg: #ffffff;
+    --tint: #f7f9fd;
+    --surface: #ffffff;
+    --ink: #16213e;        /* navy text */
+    --ink-soft: #2b3654;
+    --muted: #5b6478;
+    --line: #e6eaf3;
+    --accent: #4868dc;     /* brand blue */
+    --accent-dark: #3b56bd;
+    --accent-tint: #eef1fc;
+    --amber: #e8ad4e;      /* brand highlight */
+    --amber-tint: #fdf3e2;
+    --radius: 16px;
+    --shadow-sm: 0 1px 2px rgba(22, 33, 62, .06), 0 4px 12px rgba(22, 33, 62, .06);
+    --shadow-md: 0 12px 32px rgba(22, 33, 62, .10);
+    --font-head: 'Manrope', -apple-system, 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'DM Sans', -apple-system, 'Segoe UI', system-ui, sans-serif;
+  }
+
+  /* ============ Reset & base ============ */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.65;
+    color: var(--ink);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3 { margin: 0; font-family: var(--font-head); color: var(--ink); }
+  p { margin: 0; }
+  a { color: var(--accent); }
+  img, svg { vertical-align: middle; }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  .container { max-width: 1120px; margin-inline: auto; padding-inline: clamp(20px, 5vw, 40px); }
+  .section { padding-block: clamp(64px, 9vw, 104px); }
+  .section-tint { background: var(--tint); }
+
+  /* Section header: small amber bar + heading + lead */
+  .section-head { max-width: 660px; margin: 0 auto clamp(36px, 6vw, 52px); text-align: center; }
+  .section-head h2 { font-size: clamp(1.6rem, 3.2vw + .6rem, 2.3rem); font-weight: 800; letter-spacing: -.015em; line-height: 1.15; }
+  .section-head p { color: var(--muted); margin-top: 14px; font-size: 1.05rem; }
+  .section-head.left { text-align: left; margin-inline: 0; }
+
+  /* ============ Skip link ============ */
+  .skip { position: absolute; left: 16px; top: -64px; z-index: 100; background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 8px; text-decoration: none; transition: top .2s; }
+  .skip:focus { top: 16px; }
+
+  /* ============ Buttons ============ */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    font-family: var(--font-head); font-weight: 600; font-size: .95rem;
+    padding: 13px 22px; border-radius: 10px; text-decoration: none;
+    border: 1px solid transparent; cursor: pointer;
+    transition: background .15s ease, transform .15s ease, box-shadow .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-ghost { background: var(--bg); color: var(--ink); border-color: var(--line); }
+  .btn-ghost:hover { border-color: #c6cee2; background: var(--tint); }
+  .btn-lg { padding: 15px 28px; font-size: 1rem; }
+
+  /* ============ Nav ============ */
+  .nav { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, .88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 68px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; }
+  .brand-mark { width: 30px; height: 30px; border-radius: 9px; background: var(--accent); color: #fff; display: grid; place-items: center; font-family: var(--font-head); font-weight: 800; font-size: 1.05rem; }
+  .brand-name { font-family: var(--font-head); font-weight: 800; font-size: 1.05rem; letter-spacing: .02em; color: var(--ink); }
+  .nav-menu { display: flex; align-items: center; gap: 26px; }
+  .nav-menu a:not(.btn) { color: var(--ink-soft); font-weight: 500; font-size: .95rem; text-decoration: none; padding: 6px 2px; border-bottom: 2px solid transparent; }
+  .nav-menu a:not(.btn):hover { color: var(--accent); border-bottom-color: var(--accent-tint); }
+  .nav-toggle { display: none; }
+  .nav-toggle .icon-close { display: none; }
+  .nav-toggle.is-open .icon-menu { display: none; }
+  .nav-toggle.is-open .icon-close { display: block; }
+
+  /* ============ Hero ============ */
+  .hero { padding: clamp(48px, 9vw, 96px) 0 56px; }
+  .hero-grid { display: grid; gap: 40px; align-items: center; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; background: var(--amber); color: var(--ink); font-weight: 700; font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; padding: 7px 14px; border-radius: 999px; }
+  .hero h1 { font-size: clamp(2.15rem, 5.5vw + 1rem, 3.4rem); font-weight: 800; line-height: 1.08; letter-spacing: -.02em; margin: 18px 0 18px; }
+  .hero-lead { color: var(--muted); font-size: 1.125rem; max-width: 54ch; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+  .trust-line { display: flex; flex-wrap: wrap; gap: 10px 20px; margin-top: 24px; color: var(--muted); font-size: .9rem; }
+  .trust-line .t-item { display: inline-flex; align-items: center; gap: 7px; }
+  .trust-line svg { color: var(--accent); flex: none; }
+
+  /* Hero dashboard mock (HTML/CSS only) */
+  .mock { background: #fff; border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow-md); padding: 22px; max-width: 480px; width: 100%; }
+  .mock-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
+  .mock-title { font-family: var(--font-head); font-weight: 700; font-size: 1rem; color: var(--ink); }
+  .mock-period { font-size: .75rem; color: var(--muted); background: var(--tint); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; }
+  .mock-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .mock-tile { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .mock-tile-amber { background: var(--amber-tint); border-color: #f2d9a8; }
+  .mock-label { display: block; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .mock-value { display: block; font-family: var(--font-head); font-weight: 700; font-size: 1.12rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .mock-chart { margin-top: 18px; }
+  .mock-chart-caption { font-size: .78rem; color: var(--muted); margin-bottom: 10px; display: block; }
+  .mock-bars { display: flex; align-items: flex-end; gap: 6px; height: 84px; }
+  .mock-bars span { width: 8px; height: var(--h); border-radius: 3px; background: var(--accent); opacity: .26; }
+  .mock-bars span.hot { opacity: 1; }
+  .mock-note { margin-top: 14px; font-size: .78rem; color: var(--muted); }
+
+  /* ============ Problem → solution ============ */
+  .pain-list { display: grid; gap: 0; }
+  .pain-row { display: grid; grid-template-columns: 44px 1fr; gap: 14px; padding: 22px 0; border-top: 1px solid var(--line); }
+  .pain-row:first-child { border-top: 0; padding-top: 0; }
+  .pain-icon { width: 42px; height: 42px; border-radius: 12px; background: var(--accent-tint); color: var(--accent); display: grid; place-items: center; }
+  .pain-icon svg { width: 22px; height: 22px; }
+  .pain-row h3 { font-size: 1.15rem; margin-bottom: 6px; }
+  .pain-problem { color: var(--muted); font-size: .95rem; }
+  .pain-cure { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; font-weight: 600; font-size: .95rem; color: var(--ink); }
+  .cure-check { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-tint); color: var(--accent); display: grid; place-items: center; margin-top: 1px; }
+  .cure-check svg { width: 13px; height: 13px; }
+  @media (min-width: 900px) {
+    .pain-list { grid-template-columns: repeat(3, 1fr); column-gap: 40px; }
+    .pain-row { grid-template-columns: 1fr; padding: 0; border-top: 0; }
+    .pain-row:nth-child(2), .pain-row:nth-child(3) { border-left: 1px solid var(--line); padding-left: 40px; }
+  }
+
+  /* ============ Feature grid ============ */
+  .features-grid { display: grid; gap: 20px; }
+  .feature-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow-sm); transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+  .feature-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: #d8dfef; }
+  .feature-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--accent-tint); color: var(--accent); display: grid; place-items: center; margin-bottom: 16px; }
+  .feature-icon svg { width: 23px; height: 23px; }
+  .feature-card h3 { font-size: 1.05rem; margin-bottom: 6px; }
+  .feature-card p { color: var(--muted); font-size: .92rem; }
+
+  /* ============ Cara kerja ============ */
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 28px; }
+  .step { position: relative; }
+  .step-num { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: #fff; font-family: var(--font-head); font-weight: 700; display: grid; place-items: center; margin-bottom: 14px; }
+  .step h3 { font-size: 1.1rem; margin-bottom: 6px; }
+  .step p { color: var(--muted); font-size: .95rem; max-width: 30ch; }
+  .step-conn { display: none; }
+
+  /* ============ Laporan (report showcase) ============ */
+  .report-card { background: #fff; border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow-md); overflow: hidden; max-width: 920px; margin: 0 auto; }
+  .report-head { padding: 18px 24px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; }
+  .report-head .report-title { font-family: var(--font-head); font-weight: 700; font-size: 1.02rem; color: var(--ink); }
+  .report-tabs { display: inline-flex; gap: 4px; background: var(--tint); border: 1px solid var(--line); border-radius: 10px; padding: 4px; }
+  .report-tab { border: 0; background: transparent; font-family: var(--font-head); font-weight: 600; font-size: .9rem; color: var(--muted); padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+  .report-tab.is-active { background: var(--accent); color: #fff; }
+  .report-meta { padding: 16px 24px 2px; color: var(--muted); font-size: .85rem; }
+  .table-wrap { overflow-x: auto; padding: 10px 24px 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; min-width: 520px; }
+  th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; }
+  thead th { font-size: .75rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tfoot td { font-weight: 700; color: var(--ink); border-top: 2px solid var(--line); border-bottom: 0; }
+  .table-pl .group th { background: var(--tint); font-size: .78rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); padding: 8px 12px; }
+  .table-pl .subtotal td { font-weight: 600; color: var(--ink); }
+  .table-pl .net td { background: var(--amber-tint); font-weight: 800; color: var(--ink); }
+  .report-note { padding: 14px 24px 22px; color: var(--muted); font-size: .82rem; }
+
+  /* ============ Peran ============ */
+  .roles-grid { display: grid; gap: 20px; max-width: 960px; margin: 0 auto; }
+  .role-card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 28px; box-shadow: var(--shadow-sm); }
+  .role-head { display: flex; gap: 14px; align-items: center; margin-bottom: 18px; }
+  .role-icon { width: 46px; height: 46px; border-radius: 12px; background: var(--accent-tint); color: var(--accent); display: grid; place-items: center; }
+  .role-icon svg { width: 24px; height: 24px; }
+  .role-head h3 { font-size: 1.2rem; }
+  .role-head p { color: var(--muted); font-size: .88rem; }
+  .role-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .role-list li { display: flex; gap: 10px; align-items: flex-start; color: var(--ink-soft); font-size: .95rem; }
+  .li-check { flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--accent-tint); color: var(--accent); display: grid; place-items: center; margin-top: 2px; }
+  .li-check svg { width: 12px; height: 12px; }
+  .role-card.admin .role-head { background: var(--ink); color: #fff; margin: -28px -28px 0; padding: 20px 24px; border-radius: 17px 17px 0 0; }
+  .role-card.admin .role-head h3 { color: #fff; }
+  .role-card.admin .role-head p { color: rgba(255, 255, 255, .72); }
+  .role-card.admin .role-icon { background: rgba(255, 255, 255, .12); color: #fff; }
+  .role-card.admin .role-list { padding-top: 18px; }
+
+  /* ============ CTA band ============ */
+  .cta { background: var(--ink); color: #fff; }
+  .cta-inner { text-align: center; padding: clamp(72px, 10vw, 120px) 0; }
+  .cta h2 { font-family: var(--font-head); font-size: clamp(1.9rem, 4vw, 3rem); font-weight: 800; letter-spacing: -.02em; line-height: 1.12; color: #fff; }
+  .cta-amber { color: var(--amber); }
+  .cta p { color: rgba(255, 255, 255, .8); margin: 18px auto 0; max-width: 46ch; font-size: 1.05rem; }
+  .cta .btn { margin-top: 30px; }
+  .cta-trust { font-size: .85rem; color: rgba(255, 255, 255, .62); margin-top: 18px; }
+  .cta :focus-visible { outline-color: var(--amber); }
+
+  /* ============ Footer ============ */
+  .footer { background: var(--bg); border-top: 1px solid var(--line); padding: 44px 0 56px; }
+  .footer-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .footer-line { color: var(--muted); font-size: .9rem; }
+  .footer-note { color: var(--muted); font-size: .82rem; margin-top: 12px; max-width: 62ch; }
+
+  /* ============ Reveal on scroll ============ */
+  .reveal { opacity: 0; transform: translateY(16px); transition: opacity .55s cubic-bezier(.2, .6, .2, 1) var(--d, 0s), transform .55s cubic-bezier(.2, .6, .2, 1) var(--d, 0s); }
+  .reveal.in-view { opacity: 1; transform: none; }
+  .pain-list .reveal:nth-child(2) { --d: .07s; }
+  .pain-list .reveal:nth-child(3) { --d: .14s; }
+  .features-grid .reveal:nth-child(2) { --d: .05s; }
+  .features-grid .reveal:nth-child(3) { --d: .10s; }
+  .features-grid .reveal:nth-child(4) { --d: .15s; }
+  .features-grid .reveal:nth-child(5) { --d: .20s; }
+  .features-grid .reveal:nth-child(6) { --d: .25s; }
+  .steps .reveal:nth-child(2) { --d: .08s; }
+  .steps .reveal:nth-child(3) { --d: .16s; }
+  .roles-grid .reveal:nth-child(2) { --d: .10s; }
+
+  /* ============ Responsive ============ */
+  @media (min-width: 560px) {
+    .features-grid { grid-template-columns: repeat(2, 1fr); }
+    .feature-card.big, .feature-card.small { grid-column: auto; }
+  }
+  @media (min-width: 820px) {
+    .steps { grid-template-columns: 1fr auto 1fr auto 1fr; gap: 26px; align-items: start; }
+    .step-conn { display: flex; align-items: center; padding-top: 20px; }
+    .step-conn::before { content: ''; flex: 1; height: 1px; background: var(--line); }
+    .step-conn::after { content: ''; border-left: 6px solid var(--line); border-top: 3px solid transparent; border-bottom: 3px solid transparent; }
+    .step p { max-width: none; }
+    .roles-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (min-width: 900px) {
+    .pain-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (min-width: 1024px) {
+    .hero-grid { grid-template-columns: 1.05fr .95fr; gap: 56px; }
+    .features-grid { grid-template-columns: repeat(6, 1fr); }
+    .feature-card.big { grid-column: span 4; }
+    .feature-card.small { grid-column: span 2; }
+  }
+  @media (max-width: 899px) {
+    .nav-toggle {
+      display: grid; place-items: center; width: 42px; height: 42px;
+      border: 1px solid var(--line); border-radius: 10px; background: var(--bg);
+      color: var(--ink); cursor: pointer;
+    }
+    .nav-toggle svg { width: 22px; height: 22px; }
+    .nav-menu {
+      position: absolute; top: 100%; left: 0; right: 0; background: var(--bg);
+      border-bottom: 1px solid var(--line); box-shadow: var(--shadow-md);
+      padding: 12px 20px 20px; flex-direction: column; align-items: stretch; gap: 6px;
+      display: none;
+    }
+    .nav-menu.open { display: flex; }
+    .nav-menu a:not(.btn) { padding: 12px 6px; border-bottom: 1px solid var(--line); font-size: 1.05rem; }
+    .nav-menu .btn { margin-top: 10px; }
+  }
+
+  /* ============ Reduced motion ============ */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Lewati ke konten utama</a>
+
+<!-- ============ 1. Nav ============ -->
+<header class="nav" data-od-id="site-header">
+  <div class="container nav-inner">
+    <span class="brand">
+      <span class="brand-mark" aria-hidden="true">A</span>
+      <span class="brand-name">AKUNCIHUY</span>
+    </span>
+    <nav class="nav-menu" id="navMenu" aria-label="Navigasi utama">
+      <a href="#fitur">Fitur</a>
+      <a href="#cara-kerja">Cara Kerja</a>
+      <a href="#laporan">Laporan</a>
+      <a class="btn btn-primary" href="index.php" data-od-id="nav-cta">Masuk Aplikasi</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="navMenu" aria-label="Buka menu navigasi">
+      <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+  <!-- ============ 2. Hero ============ -->
+  <section class="hero" data-od-id="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="badge" data-od-id="hero-badge">Akuntansi sesuai standar SAK EMKM</span>
+        <h1 data-od-id="hero-headline">Tutup buku UMKM tanpa spreadsheet.</h1>
+        <p class="hero-lead">Akuncihuy mencatat jurnal, merapikan akun, dan menyusun laporan secara otomatis. Cukup dari browser: tanpa instalasi, tanpa ribet.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="index.php" data-od-id="hero-cta-primary">Masuk Aplikasi</a>
+          <a class="btn btn-ghost btn-lg" href="#fitur" data-od-id="hero-cta-secondary">Lihat Fitur</a>
+        </div>
+        <div class="trust-line" data-od-id="hero-trust">
+          <span class="t-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg>
+            Standar SAK EMKM
+          </span>
+          <span class="t-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg>
+            Tanpa instalasi
+          </span>
+          <span class="t-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg>
+            Jalan di browser
+          </span>
+        </div>
+      </div>
+
+      <div class="mock" data-od-id="hero-dashboard-mock" role="img" aria-label="Pratinjau dashboard ringkasan keuangan di dalam aplikasi: aset, liabilitas, ekuitas, dan laba bersih">
+        <div class="mock-head">
+          <span class="mock-title">Ringkasan Keuangan</span>
+          <span class="mock-period">Oktober 2026</span>
+        </div>
+        <div class="mock-grid">
+          <div class="mock-tile"><span class="mock-label">Aset</span><span class="mock-value">20.750.000</span></div>
+          <div class="mock-tile"><span class="mock-label">Liabilitas</span><span class="mock-value">2.450.000</span></div>
+          <div class="mock-tile"><span class="mock-label">Ekuitas</span><span class="mock-value">18.300.000</span></div>
+          <div class="mock-tile mock-tile-amber"><span class="mock-label">Laba Bersih</span><span class="mock-value">4.000.000</span></div>
+        </div>
+        <div class="mock-chart">
+          <span class="mock-chart-caption">Saldo kas · 30 hari terakhir</span>
+          <div class="mock-bars" aria-hidden="true">
+            <span style="--h:34%"></span><span style="--h:41%"></span><span style="--h:38%"></span>
+            <span style="--h:50%"></span><span style="--h:46%"></span><span style="--h:56%"></span>
+            <span style="--h:49%"></span><span style="--h:61%"></span><span style="--h:57%"></span>
+            <span style="--h:66%"></span><span style="--h:71%"></span><span class="hot" style="--h:78%"></span>
+          </div>
+        </div>
+        <p class="mock-note">Tampilan di dalam aplikasi.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. Masalah → solusi ============ -->
+  <section class="section section-tint" id="masalah" data-od-id="section-masalah">
+    <div class="container">
+      <div class="section-head left">
+        <h2 data-od-id="masalah-heading">Pembukuan toko Anda masih seperti ini?</h2>
+        <p>Kalau salah satunya terdengar familiar, Akuncihuy dibuat untuk Anda.</p>
+      </div>
+      <div class="pain-list">
+        <article class="pain-row reveal" data-od-id="pain-card-catatan-tersebar">
+          <span class="pain-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3.5" y="4" width="6" height="6" rx="1.2"/><rect x="14.5" y="3" width="6" height="6" rx="1.2"/><rect x="9" y="14" width="6" height="6" rx="1.2"/></svg>
+          </span>
+          <div>
+            <h3>Catatan tersebar</h3>
+            <p class="pain-problem">Kas di buku tulis, utang di kertas, pembelian di chat. Saat dibutuhkan, sulit ditemukan.</p>
+            <p class="pain-cure"><span class="cure-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg></span> Semua transaksi tercatat di satu tempat.</p>
+          </div>
+        </article>
+
+        <article class="pain-row reveal" data-od-id="pain-card-jurnal-lupa">
+          <span class="pain-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
+          </span>
+          <div>
+            <h3>Jurnal sering lupa dicatat</h3>
+            <p class="pain-problem">Transaksi kecil dilewatkan, saldo jadi tidak akurat dan susah dilacak.</p>
+            <p class="pain-cure"><span class="cure-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg></span> Isi jurnal singkat, saldo otomatis ter-update.</p>
+          </div>
+        </article>
+
+        <article class="pain-row reveal" data-od-id="pain-card-laporan-telat">
+          <span class="pain-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><circle cx="11" cy="14" r="2.6"/><path d="M11 12.6V14l1 1"/></svg>
+          </span>
+          <div>
+            <h3>Laporan telat</h3>
+            <p class="pain-problem">Laporan dikerjakan manual, sering baru selesai berminggu-minggu kemudian.</p>
+            <p class="pain-cure"><span class="cure-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg></span> Neraca saldo, laba rugi, dan posisi keuangan jadi otomatis.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. Fitur ============ -->
+  <section class="section" id="fitur" data-od-id="section-fitur">
+    <div class="container">
+      <div class="section-head">
+        <h2 data-od-id="fitur-heading">Semua yang toko butuhkan untuk pembukuan rapi</h2>
+        <p>Enam modul inti, dari jurnal sampai laporan, dalam satu aplikasi.</p>
+      </div>
+      <div class="features-grid">
+        <article class="feature-card reveal big" data-od-id="feature-card-dashboard">
+          <span class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7.5 16v-3M12 16V9.5M16.5 16v-5"/></svg>
+          </span>
+          <h3>Dashboard ringkasan keuangan</h3>
+          <p>Aset, liabilitas, ekuitas, dan laba bersih terlihat dalam satu layar.</p>
+        </article>
+
+        <article class="feature-card reveal small" data-od-id="feature-card-bagan-akun">
+          <span class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12"/><path d="M3.5 6l.8.8L6 5M3.5 12l.8.8L6 11M3.5 18l.8.8L6 17"/></svg>
+          </span>
+          <h3>Bagan Akun siap pakai</h3>
+          <p>22 akun standar SAK EMKM sudah tersedia, tinggal dipakai.</p>
+        </article>
+
+        <article class="feature-card reveal small" data-od-id="feature-card-data-master">
+          <span class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><ellipse cx="12" cy="5.5" rx="7" ry="2.8"/><path d="M5 5.5v6c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8v-6"/><path d="M5 11.5v6c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8v-6"/></svg>
+          </span>
+          <h3>Data master terpusat</h3>
+          <p>Barang, pelanggan, pemasok, dan karyawan tersimpan rapi.</p>
+        </article>
+
+        <article class="feature-card reveal big" data-od-id="feature-card-jurnal">
+          <span class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5A1.5 1.5 0 0 1 7.5 2H19v20H7.5A1.5 1.5 0 0 1 6 20.5v-17Z"/><path d="M9 7.5h6M9 11.5h6M9 15.5h3.5"/></svg>
+          </span>
+          <h3>Jurnal umum ter-validasi</h3>
+          <p>Debit dan kredit diperiksa otomatis; jurnal tidak seimbang tertolak.</p>
+        </article>
+
+        <article class="feature-card reveal big" data-od-id="feature-card-laporan">
+          <span class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v4h4"/><path d="M9 12h6M9 16h6"/></svg>
+          </span>
+          <h3>Laporan otomatis</h3>
+          <p>Neraca saldo, laba rugi, dan laporan posisi keuangan langsung tersusun.</p>
+        </article>
+
+        <article class="feature-card reveal small" data-od-id="feature-card-login-peran">
+          <span class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="7.5" r="3.4"/><path d="M5 20c.8-3 3.3-5 6-5s5.2 2 6 5"/><path d="M16.5 4.5l1 1 2.5-2.7"/></svg>
+          </span>
+          <h3>Login dan peran</h3>
+          <p>Super Admin dan Karyawan, masing-masing bisa ganti password sendiri.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5. Cara kerja ============ -->
+  <section class="section section-tint" id="cara-kerja" data-od-id="section-cara-kerja">
+    <div class="container">
+      <div class="section-head">
+        <h2 data-od-id="cara-kerja-heading">Mulai dari masuk sampai laporan, tiga langkah saja</h2>
+        <p>Masuk, catat, lihat laporan. Sesimpel itu.</p>
+      </div>
+      <ol class="steps" data-od-id="steps">
+        <li class="step reveal" data-od-id="step-masuk">
+          <span class="step-num" aria-hidden="true">1</span>
+          <h3>Masuk</h3>
+          <p>Buka browser, lalu masuk dengan akun toko Anda.</p>
+        </li>
+        <span class="step-conn" aria-hidden="true"></span>
+        <li class="step reveal" data-od-id="step-catat-transaksi">
+          <span class="step-num" aria-hidden="true">2</span>
+          <h3>Catat transaksi</h3>
+          <p>Isi jurnal singkat; debit dan kredit dicek otomatis.</p>
+        </li>
+        <span class="step-conn" aria-hidden="true"></span>
+        <li class="step reveal" data-od-id="step-lihat-laporan">
+          <span class="step-num" aria-hidden="true">3</span>
+          <h3>Lihat laporan</h3>
+          <p>Neraca saldo dan laba rugi tersusun otomatis.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ 6. Laporan (showcase) ============ -->
+  <section class="section" id="laporan" data-od-id="section-laporan">
+    <div class="container">
+      <div class="section-head left">
+        <h2 data-od-id="laporan-heading">Laporan siap dilihat, tanpa menyusun manual</h2>
+        <p>Contoh di bawah disusun dari jurnal usaha contoh, Fotokopi &amp; ATK Sumber Makmur.</p>
+      </div>
+
+      <div class="report-card" data-od-id="report-card">
+        <div class="report-head">
+          <span class="report-title">Laporan Oktober 2026</span>
+          <div class="report-tabs" role="tablist" aria-label="Pilih jenis laporan">
+            <button class="report-tab is-active" id="tab-neraca" type="button" role="tab" aria-selected="true" aria-controls="panel-neraca" data-panel="neraca">Neraca Saldo</button>
+            <button class="report-tab" id="tab-laba" type="button" role="tab" aria-selected="false" aria-controls="panel-laba" tabindex="-1" data-panel="laba">Laba Rugi</button>
+          </div>
+        </div>
+
+        <div class="report-panel" id="panel-neraca" role="tabpanel" aria-labelledby="tab-neraca" data-panel-view="neraca">
+          <p class="report-meta">Fotokopi &amp; ATK Sumber Makmur · Neraca Saldo · Periode Oktober 2026</p>
+          <div class="table-wrap" data-od-id="table-neraca-saldo">
+            <table>
+              <thead>
+                <tr><th scope="col">Kode</th><th scope="col">Nama Akun</th><th class="num" scope="col">Debit</th><th class="num" scope="col">Kredit</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>1101</td><td>Kas</td><td class="num">4.500.000</td><td class="num"></td></tr>
+                <tr><td>1102</td><td>Bank</td><td class="num">8.250.000</td><td class="num"></td></tr>
+                <tr><td>1201</td><td>Piutang Usaha</td><td class="num">1.200.000</td><td class="num"></td></tr>
+                <tr><td>1301</td><td>Persediaan Barang</td><td class="num">6.800.000</td><td class="num"></td></tr>
+                <tr><td>2101</td><td>Utang Usaha</td><td class="num"></td><td class="num">2.450.000</td></tr>
+                <tr><td>3101</td><td>Modal Pemilik</td><td class="num"></td><td class="num">14.300.000</td></tr>
+                <tr><td>4101</td><td>Pendapatan Penjualan</td><td class="num"></td><td class="num">9.700.000</td></tr>
+                <tr><td>5101</td><td>Beban Sewa</td><td class="num">2.400.000</td><td class="num">—</td></tr>
+                <tr><td>5102</td><td>Beban Gaji</td><td class="num">2.200.000</td><td class="num">—</td></tr>
+                <tr><td>5103</td><td>Beban Listrik &amp; Air</td><td class="num">650.000</td><td class="num">—</td></tr>
+                <tr><td>5104</td><td>Beban ATK</td><td class="num">450.000</td><td class="num">—</td></tr>
+              </tbody>
+              <tfoot>
+                <tr><td colspan="2">Total</td><td class="num">26.450.000</td><td class="num">26.450.000</td></tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <div class="report-panel" id="panel-laba" role="tabpanel" aria-labelledby="tab-laba" hidden data-panel-view="laba">
+          <p class="report-meta">Fotokopi &amp; ATK Sumber Makmur · Laba Rugi · Periode Oktober 2026</p>
+          <div class="table-wrap" data-od-id="table-laba-rugi">
+            <table class="table-pl">
+              <thead>
+                <tr><th scope="col">Pos</th><th class="num" scope="col">Jumlah</th></tr>
+              </thead>
+              <tbody>
+                <tr class="group"><th scope="row" colspan="2">Pendapatan</th></tr>
+                <tr><td>Pendapatan Penjualan</td><td class="num">9.700.000</td></tr>
+                <tr class="subtotal"><td>Total Pendapatan</td><td class="num">9.700.000</td></tr>
+                <tr class="group"><th scope="row" colspan="2">Beban</th></tr>
+                <tr><td>Beban Sewa</td><td class="num">2.400.000</td></tr>
+                <tr><td>Beban Gaji</td><td class="num">2.200.000</td></tr>
+                <tr><td>Beban Listrik &amp; Air</td><td class="num">650.000</td></tr>
+                <tr><td>Beban ATK</td><td class="num">450.000</td></tr>
+                <tr class="subtotal"><td>Total Beban</td><td class="num">5.700.000</td></tr>
+                <tr class="net"><td>Laba Bersih</td><td class="num">4.000.000</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <p class="report-note">Debit dan kredit selalu seimbang. Ini contoh dari usaha Fotokopi &amp; ATK, bukan data asli.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 7. Peran ============ -->
+  <section class="section section-tint" id="peran" data-od-id="section-peran">
+    <div class="container">
+      <div class="section-head left">
+        <h2 data-od-id="peran-heading">Satu aplikasi, peran yang jelas</h2>
+        <p>Super Admin mengelola pembukuan, Karyawan fokus mencatat transaksi.</p>
+      </div>
+      <div class="roles-grid">
+        <article class="role-card reveal admin" data-od-id="role-super-admin">
+          <div class="role-head">
+            <span class="role-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 2.5v5.2c0 4.4-2.9 7.6-7 9.8-4.1-2.2-7-5.4-7-9.8V5.5z"/><path d="M9 11.8l2.2 2.2 4-4.2"/></svg>
+            </span>
+            <div>
+              <h3>Super Admin</h3>
+              <p>Kendali penuh atas pembukuan.</p>
+            </div>
+          </div>
+          <ul class="role-list">
+            <li><span class="li-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg></span>Kelola data master: barang, pelanggan, pemasok, karyawan</li>
+            <li><span class="li-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg></span>Posting dan koreksi jurnal umum</li>
+            <li><span class="li-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg></span>Akses semua laporan keuangan</li>
+            <li><span class="li-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg></span>Kelola pengguna dan peran di aplikasi</li>
+            <li><span class="li-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg></span>Ganti password sendiri</li>
+          </ul>
+        </article>
+
+        <article class="role-card reveal" data-od-id="role-karyawan">
+          <div class="role-head">
+            <span class="role-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.1 3.4-5 7-5s6.2 1.9 7 5"/></svg>
+            </span>
+            <div>
+              <h3>Karyawan</h3>
+              <p>Fokus mencatat transaksi harian.</p>
+            </div>
+          </div>
+          <ul class="role-list">
+            <li><span class="li-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg></span>Catat transaksi harian ke jurnal umum</li>
+            <li><span class="li-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg></span>Lihat laporan sesuai izin dari admin</li>
+            <li><span class="li-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg></span>Ganti password sendiri</li>
+            <li><span class="li-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg></span>Fokus pada pencatatan transaksi, tanpa menu laporan</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 8. CTA ============ -->
+  <section class="cta" data-od-id="cta-band">
+    <div class="container cta-inner">
+      <h2 data-od-id="cta-heading">Siap merapikan <span class="cta-amber">pembukuan?</span></h2>
+      <p>Masuk ke Akuncihuy dan mulai mencatat transaksi hari ini. Laporan langsung tersusun.</p>
+      <a class="btn btn-primary btn-lg" href="index.php" data-od-id="cta-button">Masuk Aplikasi</a>
+      <p class="cta-trust">Standar SAK EMKM, tanpa instalasi, jalan di browser</p>
+    </div>
+  </section>
+</main>
+
+<!-- ============ 9. Footer ============ -->
+<footer class="footer" data-od-id="site-footer">
+  <div class="container">
+    <div class="footer-brand">
+      <span class="brand-mark" aria-hidden="true">A</span>
+      <span class="brand-name">AKUNCIHUY</span>
+    </div>
+    <p class="footer-line">Akuncihuy — Accounting Information System</p>
+    <p class="footer-line">Sistem Informasi Akuntansi • SAK EMKM</p>
+    <p class="footer-note">© 2026 Akuncihuy. Data pada contoh laporan adalah data usaha contoh (Fotokopi &amp; ATK), bukan data asli.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---- Mobile nav ---- */
+  var toggle = document.getElementById('navToggle');
+  var menu = document.getElementById('navMenu');
+  if (toggle && menu) {
+    toggle.addEventListener('click', function () {
+      var open = menu.classList.toggle('open');
+      toggle.classList.toggle('is-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggle.setAttribute('aria-label', open ? 'Tutup menu navigasi' : 'Buka menu navigasi');
+    });
+    // Close the menu when a link inside it is chosen.
+    menu.addEventListener('click', function (e) {
+      if (e.target.closest('a')) {
+        menu.classList.remove('open');
+        toggle.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  /* ---- Report tabs (accessible roving tablist) ---- */
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  function activate(controlId) {
+    tabs.forEach(function (t) {
+      var on = t.getAttribute('aria-controls') === controlId;
+      t.classList.toggle('is-active', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.setAttribute('tabindex', on ? '0' : '-1');
+      var panel = document.getElementById(t.getAttribute('aria-controls'));
+      if (panel) panel.hidden = !on;
+    });
+  }
+  tabs.forEach(function (tab, i) {
+    tab.addEventListener('click', function () {
+      activate(tab.getAttribute('aria-controls'));
+    });
+    tab.addEventListener('keydown', function (e) {
+      var next;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        next = tabs[(i + 1) % tabs.length];
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        next = tabs[(i - 1 + tabs.length) % tabs.length];
+      } else {
+        return;
+      }
+      activate(next.getAttribute('aria-controls'));
+      next.focus();
+    });
+  });
+
+  /* ---- Reveal on scroll (fade/slide), honours reduced motion ---- */
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var revealEls = document.querySelectorAll('.reveal');
+  if (reduceMotion || !('IntersectionObserver' in window)) {
+    revealEls.forEach(function (el) { el.classList.add('in-view'); });
+  } else {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    revealEls.forEach(function (el) { io.observe(el); });
+  }
+})();
+</script>
+</body>
+</html>

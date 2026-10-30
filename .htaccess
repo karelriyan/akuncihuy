@@ -1,3 +1,5 @@
+DirectoryIndex index.html index.php
+
 # Paksa HTTPS: semua kunjungan http:// dialihkan ke https://
 RewriteEngine On
 # X-Forwarded-Proto diperlukan karena InfinityFree berjalan di belakang proxy:
