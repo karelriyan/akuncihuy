@@ -45,14 +45,15 @@ SET FOREIGN_KEY_CHECKS = 1;
 CREATE TABLE profil_usaha (
   id TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   nama_usaha VARCHAR(150) NOT NULL,
+  jenis_usaha VARCHAR(120) NULL,
   alamat TEXT NULL,
   telepon VARCHAR(30) NULL,
   standar_akuntansi VARCHAR(80) DEFAULT 'SAK EMKM',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-INSERT INTO profil_usaha (nama_usaha, standar_akuntansi)
-VALUES ('Fotokopi & ATK Maju Jaya', 'SAK EMKM');
+INSERT INTO profil_usaha (nama_usaha, jenis_usaha, standar_akuntansi)
+VALUES ('Fotokopi & ATK Maju Jaya', 'Fotokopi & Alat Tulis Kantor', 'SAK EMKM');
 
 -- 2. CHART OF ACCOUNTS (22 akun dari workbook)
 CREATE TABLE coa (

@@ -1,0 +1,34 @@
+-- ============================================================
+-- MIGRASI 01 - TAMBAH KOLOM jenis_usaha PADA TABEL profil_usaha
+-- ============================================================
+--
+-- (a) UNTUK APA MIGRASI INI?
+--     Tabel profil_usaha pada database yang SUDAH pernah di-import
+--     sebelumnya belum punya kolom jenis_usaha. Akibatnya tombol
+--     "Save Changes" di halaman Settings gagal dengan pesan:
+--       "Unknown column 'jenis_usaha' in 'field list'"
+--     Berkas ini menambahkan kolom tersebut supaya form Settings bisa
+--     menyimpan jenis usaha.
+--
+-- (b) AMAN - TIDAK MENGHAPUS DATA
+--     Perintah di bawah hanya MENAMBAH satu kolom baru (jenis_usaha).
+--     Tidak ada data yang dihapus atau diubah. Isi tabel profil_usaha
+--     (nama usaha, alamat, telepon, standar akuntansi) tetap utuh.
+--
+-- (c) CARA PAKAI (phpMyAdmin)
+--     1. Buka phpMyAdmin dari panel hosting.
+--     2. Klik nama database kamu di daftar sebelah KIRI.
+--     3. Klik tab "SQL" di bagian atas.
+--     4. Tempel seluruh isi berkas ini ke kotak SQL.
+--     5. Klik tombol "Go".
+--
+-- (d) KALAU MUNCUL ERROR "Duplicate column name 'jenis_usaha'"
+--     Berarti migrasi ini SUDAH pernah dijalankan (kolomnya sudah ada).
+--     Itu tidak masalah - abaikan saja error tersebut, tidak ada yang rusak.
+--
+-- Catatan: perintah ini sengaja TIDAK memakai "IF NOT EXISTS" karena
+-- MySQL 8.0 (yang dipakai hosting InfinityFree) belum mendukungnya
+-- untuk perintah ADD COLUMN.
+-- ============================================================
+
+ALTER TABLE profil_usaha ADD COLUMN jenis_usaha VARCHAR(120) NULL AFTER nama_usaha;

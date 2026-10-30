@@ -35,6 +35,13 @@ Siapkan Notepad untuk mencatat 7 nilai rahasia di Bagian A — semuanya dipakai 
 12. Kalau berhasil muncul tulisan hijau "Import has been successfully finished", dan di
     sidebar kiri ada **8 tabel**: profil_usaha, coa, barang, pelanggan, pemasok, karyawan,
     jurnal_umum, detail_jurnal.
+13. **Sudah pernah import sebelumnya?** Kalau database di hosting ini pernah di-import dari
+    berkas `deploy/infinityfree/database.sql` versi **lama** (sebelum kolom `jenis_usaha`
+    ditambahkan), jangan import ulang — import ulang akan **menghapus data**. Sebagai
+    gantinya jalankan berkas migrasi `deploy/infinityfree/migrasi-01-tambah-jenis_usaha.sql`
+    lewat phpMyAdmin: klik nama database di kiri → tab **SQL** → tempel isi berkas itu →
+    **Go**. Kalau database baru saja di-import dari berkas versi terbaru (langkah 11),
+    langkah ini tidak perlu — kolomnya sudah ada.
 
 > **Penting** ⚠️ Jangan import file `database.sql` di folder utama. File itu berisi perintah
 > yang diblokir hosting gratis, hasilnya "access denied". Yang di-import selalu
@@ -115,6 +122,7 @@ Ganti `<USERNAME>` dengan nama akun GitHub-mu dan `<REPO>` dengan nama repo. Con
 | Workflow gagal dengan **"530 Login incorrect"** | `FTP_USERNAME` / `FTP_PASSWORD` / `FTP_SERVER` salah | Perbaiki secret FTP-nya (lihat Bagian B), lalu jalankan ulang workflow |
 | Import phpMyAdmin gagal dengan **"access denied"** atau **"CREATE VIEW command denied"** | Kamu meng-import file `database.sql` di folder utama, bukan versi hosting | Ulangi Bagian A langkah 10–11 dengan file `deploy/infinityfree/database.sql` |
 | Import berhasil tapi tabelnya **cuma sebagian** | Import terpotong / file salah | Hapus tabel yang ada (centang semua → Drop), lalu import ulang file `deploy/infinityfree/database.sql` |
+| Klik **Save Changes** di halaman **Settings** gagal dengan pesan **"Unknown column 'jenis_usaha' in 'field list'"** | Database di hosting di-import **sebelum** kolom `jenis_usaha` ada (versi lama) | Jalankan berkas migrasi `deploy/infinityfree/migrasi-01-tambah-jenis_usaha.sql` lewat phpMyAdmin (pilih database → tab **SQL** → tempel → **Go**). Migrasi ini **tidak** menghapus data |
 | Halaman web tampil **"This site can't provide a secure connection"** atau peringatan "not secure" | SSL belum aktif | Di vPanel, buka menu **SSL Certificates** → **Add SSL Certificate** → pilih penyedia sertifikat gratis → ikuti instruksinya (biasanya perlu menambah record CNAME di menu DNS). Tunggu sampai statusnya aktif, lalu buka lagi dengan `https://` |
 | Situs tiba-tiba tidak bisa dibuka sama sekali | Kuota harian habis (hits/hari) atau akun disuspend karena lama tidak ada pengunjung | Tunggu ~24 jam; kalau karena inactivity, buka Client Area dan aktifkan kembali akunnya |
 
