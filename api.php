@@ -214,7 +214,7 @@ try {
     $pdo->commit(); out(['success'=>true,'nomor_jurnal'=>$number]);
   case 'reports':
     $start=$_GET['start']??'2000-01-01'; $end=$_GET['end']??date('Y-m-d');
-    $q=$pdo->prepare("SELECT c.kode_akun,c.nama_akun,c.kelompok_akun,c.saldo_normal,
+    $q=$pdo->prepare("SELECT c.kode_akun,c.nama_akun,c.kelompok_akun,c.saldo_normal,c.saldo_referensi,
       COALESCE(SUM(d.debit),0) debit,COALESCE(SUM(d.kredit),0) kredit
       FROM coa c
       LEFT JOIN jurnal_umum j ON j.status='Posted' AND j.tanggal BETWEEN ? AND ?
