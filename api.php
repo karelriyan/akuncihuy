@@ -50,6 +50,16 @@ try {
     if(!isset($map[$type])) out(['error'=>'Invalid data type'],400);
     $m=$map[$type]; $vals=[];
     foreach($m['fields'] as $f){$vals[$f]=$input[$f]??null;}
+    $numericFields=['stok','harga_beli','harga_jual','saldo_referensi'];
+    foreach($numericFields as $nf){
+      if(array_key_exists($nf,$vals) && $vals[$nf]!==null && $vals[$nf]!==''){
+        if(!is_numeric($vals[$nf])) out(['error'=>ucfirst(str_replace('_',' ',$nf)).' harus berupa angka.'],422);
+        if((float)$vals[$nf]<0) out(['error'=>ucfirst(str_replace('_',' ',$nf)).' tidak boleh negatif.'],422);
+      }
+    }
+    if(array_key_exists('status_aktif',$vals) && $vals['status_aktif']!==null && $vals['status_aktif']!==''){
+      $vals['status_aktif']=(int)$vals['status_aktif']?1:0;
+    }
     $required=$m['fields'][0]; $nameField=$m['fields'][1];
     if(strv($vals[$required])===''||strv($vals[$nameField])==='') out(['error'=>'Required fields cannot be empty'],422);
     if($id){
@@ -91,13 +101,43 @@ try {
   case 'save_journal':
     $date=strv($input['tanggal']??''); $desc=strv($input['keterangan']??''); $rows=$input['details']??[];
     if(!$date||!$desc||count($rows)<2) out(['error'=>'Enter journal date, description, and at least two account lines'],422);
+    $dt=DateTime::createFromFormat('Y-m-d',$date);
+    if(!$dt || $dt->format('Y-m-d')!==$date) out(['error'=>'Tanggal harus berformat YYYY-MM-DD.'],422);
+    $codes=[];
+    foreach($rows as $r){$codes[]=strv($r['kode_akun']??'');}
+    $validCodes=[];
+    if($codes){
+      $ph=implode(',',array_fill(0,count($codes),'?'));
+      $st=$pdo->prepare("SELECT kode_akun FROM coa WHERE kode_akun IN ($ph)");
+      $st->execute($codes);
+      foreach($st->fetchAll(PDO::FETCH_COLUMN) as $c){$validCodes[$c]=true;}
+    }
     $debit=0;$credit=0;
-    foreach($rows as $r){$d=(float)($r['debit']??0);$c=(float)($r['kredit']??0); if(($d>0&&$c>0)||($d<=0&&$c<=0)) out(['error'=>'Each journal line must contain either debit or credit'],422);$debit+=$d;$credit+=$c;}
+    foreach($rows as $r){
+      $d=$r['debit']??0; $c=$r['kredit']??0;
+      if(!is_numeric($d)||!is_numeric($c)) out(['error'=>'Debit/kredit harus berupa angka.'],422);
+      $d=(float)$d; $c=(float)$c;
+      if($d<0||$c<0) out(['error'=>'Debit/kredit tidak boleh negatif.'],422);
+      if(($d>0&&$c>0)||($d<=0&&$c<=0)) out(['error'=>'Each journal line must contain either debit or credit'],422);
+      $code=strv($r['kode_akun']??'');
+      if(!isset($validCodes[$code])) out(['error'=>'Akun tidak ditemukan: '.$code],422);
+      $debit+=$d;$credit+=$c;
+    }
     if(round($debit,2)!==round($credit,2)) out(['error'=>'Journal is not balanced. Total debit must equal total credit.'],422);
     $pdo->beginTransaction();
-    $number='JU-'.date('Ymd-His').'-'.random_int(10,99);
-    $q=$pdo->prepare("INSERT INTO jurnal_umum(nomor_jurnal,tanggal,keterangan,status) VALUES(?,?,?,'Posted')");
-    $q->execute([$number,$date,$desc]); $jid=(int)$pdo->lastInsertId();
+    $inserted=false; $number='';
+    for($attempt=0;$attempt<5;$attempt++){
+      $number='JU-'.date('Ymd-His').'-'.random_int(100,999);
+      try{
+        $q=$pdo->prepare("INSERT INTO jurnal_umum(nomor_jurnal,tanggal,keterangan,status) VALUES(?,?,?,'Posted')");
+        $q->execute([$number,$date,$desc]); $inserted=true; break;
+      }catch(PDOException $e){
+        if((int)($e->errorInfo[1]??0)===1062){ continue; }
+        throw $e;
+      }
+    }
+    if(!$inserted){ $pdo->rollBack(); out(['error'=>'Terjadi kesalahan pada server. Silakan coba lagi.'],500); }
+    $jid=(int)$pdo->lastInsertId();
     $d=$pdo->prepare("INSERT INTO detail_jurnal(id_jurnal,nomor_baris,kode_akun,keterangan,debit,kredit) VALUES(?,?,?,?,?,?)");
     foreach($rows as $i=>$r){$d->execute([$jid,$i+1,strv($r['kode_akun']??''),strv($r['keterangan']??''),(float)($r['debit']??0),(float)($r['kredit']??0)]);}
     $pdo->commit(); out(['success'=>true,'nomor_jurnal'=>$number]);
@@ -128,12 +168,29 @@ try {
   case 'settings':
     out(['data'=>$pdo->query("SELECT * FROM profil_usaha ORDER BY id LIMIT 1")->fetch()]);
   case 'save_settings':
+    $vals=[strv($input['nama_usaha']??''),strv($input['jenis_usaha']??''),strv($input['alamat']??''),strv($input['telepon']??''),strv($input['standar_akuntansi']??'SAK EMKM')];
     $q=$pdo->prepare("UPDATE profil_usaha SET nama_usaha=?,jenis_usaha=?,alamat=?,telepon=?,standar_akuntansi=? WHERE id=1");
-    $q->execute([strv($input['nama_usaha']??''),strv($input['jenis_usaha']??''),strv($input['alamat']??''),strv($input['telepon']??''),strv($input['standar_akuntansi']??'SAK EMKM')]);
+    $q->execute($vals);
+    if($q->rowCount()===0){
+      $cnt=(int)$pdo->query("SELECT COUNT(*) FROM profil_usaha WHERE id=1")->fetchColumn();
+      if($cnt===0){
+        $ins=$pdo->prepare("INSERT INTO profil_usaha (id,nama_usaha,jenis_usaha,alamat,telepon,standar_akuntansi) VALUES (1,?,?,?,?,?)");
+        $ins->execute($vals);
+      }
+    }
     out(['success'=>true]);
   default: out(['error'=>'Unknown action'],404);
  }
 } catch (Throwable $e) {
  if($pdo->inTransaction()) $pdo->rollBack();
- out(['error'=>$e->getMessage()],500);
+ if($e instanceof PDOException){
+   $code = (int)($e->errorInfo[1] ?? 0);
+   if($code===1062) out(['error'=>'Kode sudah dipakai. Gunakan kode lain.'],409);
+   if($code===1451||$code===1452) out(['error'=>'Data ini masih dipakai di transaksi lain sehingga belum bisa dihapus.'],409);
+   if($code===3819||$code===4025) out(['error'=>'Nilai tidak valid untuk data ini.'],422);
+   error_log('PDOException: '.$e->getMessage());
+   out(['error'=>'Terjadi kesalahan pada server. Silakan coba lagi.'],500);
+ }
+ error_log('Throwable: '.$e->getMessage());
+ out(['error'=>'Terjadi kesalahan pada server. Silakan coba lagi.'],500);
 }

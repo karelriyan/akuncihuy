@@ -17,6 +17,7 @@ $options = [
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (PDOException $e) {
+    error_log('Database connection failed: ' . $e->getMessage());
     http_response_code(500);
-    die('Database connection failed. Check config/database.php and make sure MySQL is running. Details: ' . htmlspecialchars($e->getMessage()));
+    die('Koneksi database gagal. Periksa konfigurasi server.');
 }

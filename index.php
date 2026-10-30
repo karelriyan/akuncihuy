@@ -12,7 +12,7 @@
 <body>
 <div class="app-shell">
 <aside class="sidebar" id="sidebar">
- <div class="brand"><div class="brand-mark">MJ</div><div class="brand-copy"><strong>MAJU JAYA</strong><span>Accounting System</span></div><button class="sidebar-close" id="sidebarClose">×</button></div>
+ <div class="brand"><div class="brand-mark">MJ</div><div class="brand-copy"><strong>MAJU JAYA</strong><span>Accounting System</span></div><button class="sidebar-close" id="sidebarClose" aria-label="Tutup menu">×</button></div>
  <div class="profile-card"><div class="avatar">A</div><div class="profile-info"><strong>Administrator</strong><span>System Admin</span></div><button class="more-btn" aria-label="Account options">•••</button></div>
  <div class="nav-label">WORKSPACE</div>
  <nav class="navigation">
@@ -32,7 +32,7 @@
 </aside>
 <div class="mobile-scrim" id="scrim"></div>
 <main class="main-area">
- <header class="topbar"><div class="top-left"><button class="menu-toggle" id="menuToggle">☰</button><div><div class="breadcrumb">Workspace <span>/</span> <b id="breadcrumbText">Dashboard</b></div><h1 id="pageTitle">Dashboard</h1></div></div><div class="top-actions"><button class="icon-button" title="Notifications">♧<i></i></button><div class="top-profile"><div class="avatar small">A</div><div><b>Administrator</b><span>Admin account</span></div><span class="top-chevron">⌄</span></div></div></header>
+ <header class="topbar"><div class="top-left"><button class="menu-toggle" id="menuToggle" aria-label="Buka menu">☰</button><div><div class="breadcrumb">Workspace <span>/</span> <b id="breadcrumbText">Dashboard</b></div><h1 id="pageTitle">Dashboard</h1></div></div><div class="top-actions"><button class="icon-button" title="Notifications" aria-label="Notifikasi">♧<i></i></button><div class="top-profile"><div class="avatar small">A</div><div><b>Administrator</b><span>Admin account</span></div><span class="top-chevron">⌄</span></div></div></header>
  <section class="page-content" id="pageContent"><div class="loading-state">Loading your accounting workspace…</div></section>
  <footer class="page-footer"><span>© 2026 Fotokopi & ATK Maju Jaya</span><span>Accounting Information System <b>•</b> SAK EMKM</span></footer>
 </main>
