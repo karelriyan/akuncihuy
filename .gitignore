@@ -1,0 +1,7 @@
+# Kredensial database asli — dibuat otomatis saat deploy, tidak pernah masuk git.
+config/credentials.php
+
+# Sampah OS
+.DS_Store
+Thumbs.db
+desktop.ini

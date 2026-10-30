@@ -1,9 +1,12 @@
 <?php
 declare(strict_types=1);
-$host = '127.0.0.1';
-$db   = 'db_maju_jaya';
-$user = 'root';
-$pass = ''; // Default XAMPP. Change this if your MySQL password is different.
+// Kredensial dibaca dengan urutan: config/credentials.php -> variabel lingkungan (DB_*) -> default lokal.
+// File credentials.php dibuat otomatis saat deploy dari GitHub Secrets dan tidak ikut git.
+$credentials = is_file(__DIR__ . '/credentials.php') ? require __DIR__ . '/credentials.php' : [];
+$host = $credentials['host'] ?? (getenv('DB_HOST') ?: '127.0.0.1');
+$db   = $credentials['db']   ?? (getenv('DB_NAME') ?: 'db_maju_jaya');
+$user = $credentials['user'] ?? (getenv('DB_USER') ?: 'root');
+$pass = $credentials['pass'] ?? (getenv('DB_PASS') ?: ''); // Default XAMPP. Change this if your MySQL password is different.
 $charset = 'utf8mb4';
 $dsn = "mysql:host={$host};dbname={$db};charset={$charset}";
 $options = [

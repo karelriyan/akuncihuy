@@ -1,0 +1,73 @@
+# Auto-deploy ke InfinityFree (FTP biasa, tanpa SSH).
+# Push ke main -> lint PHP -> tulis config/credentials.php dari Secrets -> upload ke htdocs/.
+#
+# Secrets yang dibutuhkan: DB_HOST, DB_NAME, DB_USER, DB_PASS,
+#                          FTP_SERVER, FTP_USERNAME, FTP_PASSWORD
+# Panduan klik-per-klik: docs/CARA-DEPLOY-INFINITYFREE.md
+name: Deploy ke InfinityFree
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ambil kode
+        uses: actions/checkout@v7.0.1
+
+      - name: Lint PHP (gagalkan sebelum upload)
+        run: |
+          set -e
+          for f in index.php api.php config/database.php; do php -l "$f"; done
+
+      - name: Tulis kredensial database dari secrets
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+        run: |
+          python3 - <<'PY'
+          import os, pathlib
+
+          # nama kunci di credentials.php -> nama secret GitHub
+          fields = (("host", "DB_HOST"), ("db", "DB_NAME"), ("user", "DB_USER"), ("pass", "DB_PASS"))
+          vals = {key: os.environ.get(env, "") for key, env in fields}
+          missing = [env for key, env in fields if not vals[key]]
+          if missing:
+              raise SystemExit("Secret kosong: " + ", ".join(missing))
+
+          def php_str(s):
+              return "'" + s.replace("\\", "\\\\").replace("'", "\\'") + "'"
+
+          body = "".join("    %s => %s,\n" % (php_str(key), php_str(vals[key])) for key, _ in fields)
+          pathlib.Path("config/credentials.php").write_text(
+              "<?php\nreturn [\n" + body + "];\n", encoding="utf-8")
+          print("credentials.php dibuat untuk host:", vals["host"])
+          PY
+
+      - name: Upload ke htdocs/
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
+          server-dir: htdocs/
+          # Tanpa dangerous-clean-slate: berkas di server yang tidak ada di repo tidak dihapus.
+          # 'exclude' mengganti nilai default action, jadi default-nya ditulis ulang di sini
+          # (lihat README action: **/.git*, **/.git*/**, **/node_modules/**).
+          # Berkas state action dan berkas yang hanya berguna di repo juga tidak di-upload.
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            .ftp-deploy-sync-state.json
+            deploy/**
+            docs/**
+            .github/**
+            .gitignore
+            config/credentials.example.php
