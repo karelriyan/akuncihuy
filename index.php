@@ -50,7 +50,7 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
 <div class="app-shell">
 <aside class="sidebar" id="sidebar">
  <div class="brand"><div class="brand-mark">MJ</div><div class="brand-copy"><strong>MAJU JAYA</strong><span>Accounting System</span></div><button class="sidebar-close" id="sidebarClose" aria-label="Tutup menu">×</button></div>
- <div class="profile-card"><div class="avatar" id="sidebarAvatar">A</div><div class="profile-info"><strong id="sidebarName">Administrator</strong><span id="sidebarRole">System Admin</span></div><button class="more-btn" aria-label="Account options" id="logoutBtn">Keluar</button></div>
+ <div class="profile-card"><div class="avatar" id="sidebarAvatar">A</div><div class="profile-info"><strong id="sidebarName">Administrator</strong><span id="sidebarRole">System Admin</span></div><button class="logout-btn" aria-label="Account options" id="logoutBtn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Keluar</button></div>
  <div class="nav-label">WORKSPACE</div>
  <nav class="navigation">
   <button class="nav-item" data-page="coa"><span class="nav-icon">▤</span><span>Chart of Accounts</span></button>
@@ -70,7 +70,7 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
 </aside>
 <div class="mobile-scrim" id="scrim"></div>
 <main class="main-area">
- <header class="topbar"><div class="top-left"><button class="menu-toggle" id="menuToggle" aria-label="Buka menu">☰</button><div><div class="breadcrumb">Workspace <span>/</span> <b id="breadcrumbText">Dashboard</b></div><h1 id="pageTitle">Dashboard</h1></div></div><div class="top-actions"><button class="icon-button" title="Notifications" aria-label="Notifikasi">♧<i></i></button><div class="top-profile"><div class="avatar small" id="topAvatar">A</div><div><b id="topName">Administrator</b><span id="topRole">Admin account</span></div><span class="top-chevron">⌄</span></div></div></header>
+ <header class="topbar"><div class="top-left"><button class="menu-toggle" id="menuToggle" aria-label="Buka menu">☰</button><div><div class="breadcrumb">Workspace <span>/</span> <b id="breadcrumbText">Dashboard</b></div><h1 id="pageTitle">Dashboard</h1></div></div><div class="top-actions"><button class="icon-button" title="Notifikasi (belum tersedia)" aria-label="Notifikasi" disabled>♧<i></i></button><div class="top-profile"><div class="avatar small" id="topAvatar">A</div><div><b id="topName">Administrator</b><span id="topRole">Admin account</span></div><span class="top-chevron">⌄</span></div></div></header>
  <section class="page-content" id="pageContent"><div class="loading-state">Loading your accounting workspace…</div></section>
  <footer class="page-footer"><span>© 2026 Fotokopi & ATK Maju Jaya</span><span>Accounting Information System <b>•</b> SAK EMKM</span></footer>
 </main>
