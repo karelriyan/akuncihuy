@@ -1,0 +1,7 @@
+# Paksa HTTPS: semua kunjungan http:// dialihkan ke https://
+RewriteEngine On
+# X-Forwarded-Proto diperlukan karena InfinityFree berjalan di belakang proxy:
+# tanpa kondisi ini, https yang sah bisa ikut dialihkan -> redirect loop.
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
